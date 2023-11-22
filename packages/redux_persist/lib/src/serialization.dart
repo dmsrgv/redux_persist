@@ -10,13 +10,17 @@ abstract class StateSerializer<T> {
 
 class JsonSerializer<T> implements StateSerializer<T> {
   /// Turns the dynamic [json] (can be null) to [T]
-  final T? Function(dynamic? json) decoder;
+  final T? Function(dynamic json) decoder;
+  final void Function(dynamic json)? migration;
 
-  JsonSerializer(this.decoder);
+  JsonSerializer({required this.decoder, this.migration});
 
   @override
   T? decode(Uint8List? data) {
-    return decoder(data != null ? json.decode(uint8ListToString(data)!) : null);
+    dynamic listString =
+        data != null ? json.decode(uint8ListToString(data)!) : null;
+    migration?.call(listString);
+    return decoder(listString);
   }
 
   @override
